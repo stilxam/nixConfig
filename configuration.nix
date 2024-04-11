@@ -1,9 +1,7 @@
-# Edit this configuration file to define what should be installed on
+# Edit this configuration file to define what should be installed on 
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, ... }:
-
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -14,7 +12,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "stacy"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -46,15 +44,31 @@
   services.xserver.enable = true;
 
   # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
+  #services.xserver.displayManager.gdm.enable = true;
+  #services.xserver.desktopManager.gnome.enable = true;
+
+  # enable kde
+  services.xserver.desktopManager.plasma5.enable = true;
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session.command = ''
+      ${pkgs.greetd.tuigreet}/bin/tuigreet \
+        --time \
+        --asterisks \
+        --user-menu \
+        --cmd Hyprland
+    '';
+    };
+  };
+  # enabling polkit
+  security.polkit.enable = true;
 
   # Configure keymap in X11
   services.xserver = {
     layout = "us";
     xkbVariant = "";
   };
-
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
@@ -79,19 +93,22 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.maxwelll = {
+  users.users.ovindar = {
     isNormalUser = true;
-    description = "Maxwell Litsios";
+    description = "Maxwell";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-      firefox
-    #  thunderbird
     ];
   };
+  
+  services.xserver.displayManager.autoLogin.enable = false;
+  services.xserver.displayManager.autoLogin.user = "ovindar";
+
+
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-  
+
   hardware.opengl = {
     enable = true;
     driSupport = true;
@@ -122,44 +139,166 @@
     nvidiaSettings = true;
 
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
-    package = config.boot.kernelPackages.nvidiaPackages.beta;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    #package = config.boot.kernelPackages.nvidiaPackages.beta;
+    #package = config.boot.kernelPackages.nvidiaPackages.production;
+    #package = config.boot.kernelPackages.nvidiaPackages.vulkan_beta;
+    #package = config.boot.kernelPackages.nvidiaPackages.legacy_470;
+    #package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
+    #package = config.boot.kernelPackages.nvidiaPackages.legacy_350;
 
   };
+  
+  #virtualisation.virtualbox.host.enable = true;
+  #virtualisation.virtualbox.host.enableExtensionPack = true;
+  #users.extraGroups.vboxusers.members = [ "ovindar" ];
+  #virtualisation.virtualbox.guest.enable = true;
+  #virtualisation.virtualbox.guest.x11 = true;
+
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs;
-    let
-      python-venv = ps: with ps; [
-        torchWithCuda
-	tensorflowWithCuda
+  environment.systemPackages = with pkgs; 
+  let
+    python-venv = ps: with ps; [
+        #torchWithCuda
+	transformers
 	pandas
         numpy
         matplotlib
         plotly
-        seaborn
+        tqdm
+	seaborn
+	gensim
+	setuptools
+	wheel
+	pydrive2
       ];
-    in
- [
-    neovim
-    wget
+  in
+  [
+
+    neovim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     git
+    jetbrains-toolbox
+    todo
+
+    unzip
+    wget
     gh
+    lazygit
+
     alacritty
-    jetbrains.pycharm-professional
+    neofetch
+    btop
+    ranger
+    unzip
+    kitty
+    waybar
+    dunst
+    hyprpaper
+    greetd.tuigreet
+    picom
+    rofi
+    swww
+    networkmanagerapplet
+    dolphin
+    oh-my-posh
+    shotman
+    w3m
+    tmux
+    ripgrep
+	
+    sublime
+    zip
+    julia-bin
+    cargo
+    nodejs
     (python310.withPackages python-venv) 
+    sqlite
+    ollama
+    mpg321
+    
+    bootstrap-studio
+    gnome.gnome-disk-utility
     cudatoolkit linuxPackages.nvidia_x11
     cudaPackages.cudnn
     libGLU libGL
     xorg.libXi xorg.libXmu freeglut
     xorg.libXext xorg.libX11 xorg.libXv xorg.libXrandr zlib 
     ncurses5 stdenv.cc binutils
-    julia-bin
+    
+    tetex
+    discord
+    flatpak
+    nyxt
+    firefox
+    thunderbird
+    google-chrome
+    spotify
     libreoffice
-  ];
-  fonts.fonts = with pkgs; [
-    (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
-  ];
+    anki
+    gimp
 
+    fishPlugins.done
+    fishPlugins.fzf-fish
+    fishPlugins.forgit
+    fishPlugins.hydro
+    fzf
+    fishPlugins.grc
+    grc
+
+
+  ];
+  programs.fish.enable=true;
+  services.flatpak.enable=true;
+  
+
+  # ---------------------
+  # BLUETOOTH CONFIGURATION
+  # ---------------------
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
+  services.blueman.enable=true; 
+  hardware.pulseaudio.package = pkgs.pulseaudioFull;
+  # ---------------------
+  # FONTS CONFIGURATION
+  # ---------------------
+
+  fonts ={
+    packages = with pkgs;[
+      (nerdfonts.override {fonts = ["FiraCode"];})
+    ];
+  };
+  #fonts.fontDir.enable = true;
+  # ---------------------
+  # PORTAL CONFIGURATION
+  # ---------------------
+
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+
+  # -----------------------
+  # HYPRLAND CONFIGURATION
+  # -----------------------
+  
+  programs.hyprland = {
+    enable = true;
+    enableNvidiaPatches = true;
+    xwayland.enable = true;
+  };
+
+  # ------------------
+  # SESSION VARIABLES
+  # ------------------
+
+  environment.sessionVariables = {
+    WLR_NO_HARDWARE_CURSORS = "1";
+    NIXOS_OZONE_WL = "1";
+  };
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+
+ 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -185,8 +324,8 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.05"; # Did you read the comment?
-  #nix.settings.experimental-features = ["nix-command" "flakes"];
+  system.stateVersion = "23.11"; # Did you read the comment?
   nix.gc.automatic = true;
   nix.gc.dates = "weekly";
+
 }
